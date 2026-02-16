@@ -25,7 +25,9 @@ An automated waste management system built for the **Smart India Hackathon**. Th
 ## 📸 Screenshots
 | **Detection Feed** | **IoT Dashboard** |
 |:---:|:---:|
-| *(Add a screenshot of your CV2 window here)* | *(Add a screenshot of your website here)* |
+| <img width="805" height="634" alt="detection_demo" src="https://github.com/user-attachments/assets/8d7797c5-e357-4a5b-a094-cd225759db2c" />| <img width="1920" height="919" alt="Dashboard" src="https://github.com/user-attachments/assets/dea72cc0-6dfc-415a-a9c2-af2833526fcd" />
+|
+
 
 ## ⚙️ How It Works
 1.  **Detection:** An IR sensor detects the presence of waste.
@@ -47,7 +49,7 @@ An automated waste management system built for the **Smart India Hackathon**. Th
 ## 🏃‍♂️ How to Run
 1.  **Clone the Repo:**
     ```bash
-    git clone [https://github.com/your-username/Smart-Waste-Segregator.git](https://github.com/your-username/Smart-Waste-Segregator.git)
+    git clone [https://github.com/mayanksh0311/Smart-Waste-Segregator.git](https://github.com/mayanksh0311/Smart-Waste-Segregator.git)
     cd Smart-Waste-Segregator
     ```
 2.  **Install Dependencies:**
@@ -62,13 +64,18 @@ An automated waste management system built for the **Smart India Hackathon**. Th
     Open `index.html` in any web browser to see live statistics.
 
 ## 🔮 Future Improvements
-* Add a GSM module to send SMS alerts when bins are full.
-* Implement solar panels for a self-sustaining system.
-* Train the model on a larger dataset (TrashNet) for better accuracy.
+* **RFID User Authentication:** Integrating **RFID tags** to identify users. This allows for a "Rewards System" where users earn points for every item they correctly recycle.
+* **GSM Alert Module:** Automatically sends SMS alerts to municipal authorities when the bins are full.
+* **Solar Power Integration:** Making the system self-sustaining for outdoor deployment in parks and streets.
+* **Dataset Expansion:** Retraining the model on a larger dataset (e.g., TrashNet) to improve detection accuracy in diverse lighting conditions.
 
 ## 👥 Contributors
-* **[Your Name]** - *Lead Developer & ML Engineer*
-* **[Teammate Name]** - *Hardware Integration*
+* **Mayank Sharma**
+* **[Mahima Bhardwaj](https://github.com/Mahimabhardwaj21)**
+* **Abhishek Gautam**
+* **Amit Pal**
+* **Shreyanshi Mishra**
+* **Aman Narayan**
 
 ---
-*Built for Hackathon 2025*
+*Built for SIH 2025*
