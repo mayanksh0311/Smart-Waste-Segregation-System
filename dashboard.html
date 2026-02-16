@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Waste Segregation - Interactive Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .status-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .status-badge {
+            padding: 10px 25px;
+            background: #10b981;
+            border-radius: 25px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .status-badge:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 12px 25px;
+            background: white;
+            color: #1e3a8a;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .control-btn.active {
+            background: #10b981;
+            color: white;
+        }
+
+        .filter-dropdown {
+            padding: 12px 20px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            color: #10b981;
+        }
+
+        .stat-change.negative {
+            color: #ef4444;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .chart-container h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chart-type-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-toggle-btn {
+            padding: 6px 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .chart-toggle-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bar-label {
+            min-width: 120px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .bar-container {
+            flex-grow: 1;
+            height: 35px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+            transition: width 0.8s ease;
+            border-radius: 8px;
+        }
+
+        .pie-chart {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+
+        .pie-chart.active {
+            display: flex;
+        }
+
+        .pie-chart canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .recent-detections {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .recent-detections h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background: white;
+            padding-bottom: 10px;
+            z-index: 10;
+        }
+
+        .detection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.5s;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .detection-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .detection-type {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .detection-confidence {
+            background: #10b981;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .detection-time {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .waste-type-organic { border-left-color: #10b981; }
+        .waste-type-recyclable { border-left-color: #3b82f6; }
+        .waste-type-hazardous { border-left-color: #ef4444; }
+
+        .timeline-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .timeline-container h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .timeline-chart {
+            width: 100%;
+            height: 250px;
+            position: relative;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            animation: modalSlideIn 0.3s;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .search-box {
+            padding: 12px 20px;
+            border: 2px solid white;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 1rem;
+            width: 250px;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .export-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .clear-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .refresh-indicator.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="refresh-indicator" id="refreshIndicator">🔄 Data Updated!</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🗑️ Smart Waste Segregation System</h1>
+            <p>Interactive Real-Time AI-Powered Dashboard</p>
+            <div class="status-container">
+                <div class="status-badge" onclick="showSystemInfo()">● LIVE MONITORING</div>
+                <div class="status-badge" style="background: #3b82f6;" id="dataCount">0 Detections</div>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <button class="control-btn active" onclick="setTimeFilter('all')" id="btnAll">All Time</button>
+            <button class="control-btn" onclick="setTimeFilter('today')" id="btnToday">Today</button>
+            <button class="control-btn" onclick="setTimeFilter('hour')" id="btnHour">Last Hour</button>
+            <input type="text" class="search-box" placeholder="🔍 Search waste type..." id="searchBox" oninput="searchDetections()">
+            <button class="control-btn export-btn" onclick="exportData()">📊 Export CSV</button>
+            <button class="control-btn clear-btn" onclick="clearData()">🗑️ Clear Data</button>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="stat-card" onclick="filterByType('all')">
+                <h3>Total Detections</h3>
+                <div class="stat-value" id="totalDetections">0</div>
+                <div class="stat-change" id="totalChange">--</div>
+            </div>
+            <div class="stat-card" onclick="filterByType('organic')">
+                <h3>Organic Waste</h3>
+                <div class="stat-value" id="organicCount">0</div>
+                <div class="stat-change" id="organicPercent">0%</div>
+            </div>
+            <div class="stat-card" onclick="filterByType('recyclable')">
+                <h3>Recyclable Waste</h3>
+                <div class="stat-value" id="recyclableCount">0</div>
+                <div class="stat-change" id="recyclablePercent">0%</div>
+            </div>
+            <div class="stat-card" onclick="filterByType('hazardous')">
+                <h3>Hazardous Waste</h3>
+                <div class="stat-value" id="hazardousCount">0</div>
+                <div class="stat-change" id="hazardousPercent">0%</div>
+            </div>
+        </div>
+
+        <div class="timeline-container">
+            <h2>📈 Detection Timeline (Last 24 Hours)</h2>
+            <canvas id="timelineChart" class="timeline-chart"></canvas>
+        </div>
+
+        <div class="main-content">
+            <div class="chart-container">
+                <h2>
+                    <span>📊 Waste Type Distribution</span>
+                    <div class="chart-type-toggle">
+                        <button class="chart-toggle-btn active" onclick="toggleChart('bar')">Bar</button>
+                        <button class="chart-toggle-btn" onclick="toggleChart('pie')">Pie</button>
+                    </div>
+                </h2>
+                <div id="barChart" class="bar-chart"></div>
+                <div id="pieChart" class="pie-chart">
+                    <canvas id="pieChartCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="recent-detections">
+                <h2>🔍 Recent Detections</h2>
+                <div id="detectionsList">
+                    <div class="loading">Connecting to Firebase...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h2 style="color: #667eea; margin-bottom: 15px;">Detection Details</h2>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            databaseURL: "https://smartwastesegregationproject-default-rtdb.firebaseio.com"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const wasteDataRef = ref(database, 'waste_data');
+
+        let allDetections = [];
+        let filteredDetections = [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let chartType = 'bar';
+
+        // Make functions global
+        window.setTimeFilter = setTimeFilter;
+        window.searchDetections = searchDetections;
+        window.filterByType = filterByType;
+        window.exportData = exportData;
+        window.clearData = clearData;
+        window.toggleChart = toggleChart;
+        window.showSystemInfo = showSystemInfo;
+        window.closeModal = closeModal;
+        window.showDetailModal = showDetailModal;
+
+        onValue(wasteDataRef, (snapshot) => {
+            const data = snapshot.val();
+            
+            showRefreshIndicator();
+            
+            if (!data) {
+                document.getElementById('detectionsList').innerHTML = '<div class="no-data">No detections yet. Start the detection system!</div>';
+                return;
+            }
+
+            allDetections = Object.entries(data).map(([key, value]) => ({
+                id: key,
+                ...value
+            })).sort((a, b) => b.timestamp - a.timestamp);
+            
+            applyFilters();
+        });
+
+        function applyFilters() {
+            let filtered = [...allDetections];
+
+            // Time filter
+            const now = Date.now();
+            if (currentFilter === 'today') {
+                const todayStart = new Date().setHours(0, 0, 0, 0);
+                filtered = filtered.filter(d => d.timestamp >= todayStart);
+            } else if (currentFilter === 'hour') {
+                const oneHourAgo = now - (60 * 60 * 1000);
+                filtered = filtered.filter(d => d.timestamp >= oneHourAgo);
+            }
+
+            // Search filter
+            if (searchQuery) {
+                filtered = filtered.filter(d => 
+                    d.type.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            }
+
+            filteredDetections = filtered;
+            updateDashboard(filtered);
+        }
+
+        function updateDashboard(detections) {
+            document.getElementById('dataCount').textContent = `${detections.length} Detections`;
+            updateStats(detections);
+            updateChart(detections);
+            updateRecentDetections(detections.slice(0, 20));
+            updateTimeline(detections);
+        }
+
+        function updateStats(detections) {
+            const total = detections.length;
+            document.getElementById('totalDetections').textContent = total;
+
+            const organic = detections.filter(d => isOrganic(d.type)).length;
+            const recyclable = detections.filter(d => isRecyclable(d.type)).length;
+            const hazardous = detections.filter(d => isHazardous(d.type)).length;
+
+            document.getElementById('organicCount').textContent = organic;
+            document.getElementById('recyclableCount').textContent = recyclable;
+            document.getElementById('hazardousCount').textContent = hazardous;
+
+            if (total > 0) {
+                document.getElementById('organicPercent').textContent = `${((organic/total)*100).toFixed(1)}% of total`;
+                document.getElementById('recyclablePercent').textContent = `${((recyclable/total)*100).toFixed(1)}% of total`;
+                document.getElementById('hazardousPercent').textContent = `${((hazardous/total)*100).toFixed(1)}% of total`;
+            }
+
+            // Calculate trend
+            const recentHour = detections.filter(d => d.timestamp > Date.now() - 3600000).length;
+            const previousHour = detections.filter(d => 
+                d.timestamp > Date.now() - 7200000 && d.timestamp < Date.now() - 3600000
+            ).length;
+            
+            const change = previousHour > 0 ? ((recentHour - previousHour) / previousHour * 100).toFixed(1) : 0;
+            const changeEl = document.getElementById('totalChange');
+            changeEl.textContent = change > 0 ? `↑ ${change}% vs last hour` : change < 0 ? `↓ ${Math.abs(change)}% vs last hour` : 'No change';
+            changeEl.className = change >= 0 ? 'stat-change' : 'stat-change negative';
+        }
+
+        function updateChart(detections) {
+            const typeCounts = {};
+            detections.forEach(d => {
+                typeCounts[d.type] = (typeCounts[d.type] || 0) + 1;
+            });
+
+            if (chartType === 'bar') {
+                const maxCount = Math.max(...Object.values(typeCounts), 1);
+                const chartHTML = Object.entries(typeCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([type, count]) => `
+                        <div class="bar">
+                            <div class="bar-label">${type}</div>
+                            <div class="bar-container">
+                                <div class="bar-fill" style="width: ${(count / maxCount) * 100}%">
+                                    ${count}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                
+                document.getElementById('barChart').innerHTML = chartHTML;
+            } else {
+                drawPieChart(typeCounts);
+            }
+        }
+
+        function drawPieChart(typeCounts) {
+            const canvas = document.getElementById('pieChartCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 400;
+            canvas.height = 400;
+
+            const total = Object.values(typeCounts).reduce((a, b) => a + b, 0);
+            const colors = ['#667eea', '#764ba2', '#10b981', '#3b82f6', '#f59e0b', '#ef4444'];
+            
+            let currentAngle = -Math.PI / 2;
+            
+            Object.entries(typeCounts).forEach(([type, count], index) => {
+                const sliceAngle = (count / total) * 2 * Math.PI;
+                
+                ctx.fillStyle = colors[index % colors.length];
+                ctx.beginPath();
+                ctx.moveTo(200, 200);
+                ctx.arc(200, 200, 150, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fill();
+
+                // Label
+                const labelAngle = currentAngle + sliceAngle / 2;
+                const labelX = 200 + Math.cos(labelAngle) * 100;
+                const labelY = 200 + Math.sin(labelAngle) * 100;
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${type}`, labelX, labelY);
+                ctx.fillText(`${count}`, labelX, labelY + 20);
+
+                currentAngle += sliceAngle;
+            });
+        }
+
+        function updateTimeline(detections) {
+            const canvas = document.getElementById('timelineChart');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 250;
+
+            // Group by hour
+            const hourly = {};
+            const now = new Date();
+            for (let i = 23; i >= 0; i--) {
+                const hour = new Date(now - i * 3600000).getHours();
+                hourly[hour] = 0;
+            }
+
+            detections.forEach(d => {
+                const hour = new Date(d.timestamp).getHours();
+                if (hourly[hour] !== undefined) hourly[hour]++;
+            });
+
+            const hours = Object.keys(hourly);
+            const counts = Object.values(hourly);
+            const maxCount = Math.max(...counts, 1);
+
+            const barWidth = canvas.width / hours.length;
+            
+            counts.forEach((count, i) => {
+                const barHeight = (count / maxCount) * 200;
+                const x = i * barWidth;
+                const y = 230 - barHeight;
+
+                const gradient = ctx.createLinearGradient(0, y, 0, 230);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x + 5, y, barWidth - 10, barHeight);
+
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(hours[i] + 'h', x + barWidth/2, 245);
+            });
+        }
+
+        function updateRecentDetections(detections) {
+            const listHTML = detections.map(d => {
+                const date = new Date(d.timestamp);
+                const timeStr = date.toLocaleTimeString();
+                const wasteClass = getWasteClass(d.type);
+                
+                return `
+                    <div class="detection-item ${wasteClass}" onclick="showDetailModal('${d.id}')">
+                        <div>
+                            <div class="detection-type">${d.type}</div>
+                            <div class="detection-time">${timeStr}</div>
+                        </div>
+                        <div class="detection-confidence">${(d.confidence * 100).toFixed(1)}%</div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('detectionsList').innerHTML = listHTML || '<div class="no-data">No detections match your filters</div>';
+        }
+
+        function getWasteClass(type) {
+            if (isOrganic(type)) return 'waste-type-organic';
+            if (isRecyclable(type)) return 'waste-type-recyclable';
+            if (isHazardous(type)) return 'waste-type-hazardous';
+            return '';
+        }
+
+        function isOrganic(type) {
+            const lowerType = type.toLowerCase();
+            return lowerType.includes('organic') || lowerType.includes('food') || lowerType.includes('bio');
+        }
+
+        function isRecyclable(type) {
+            const lowerType = type.toLowerCase();
+            return lowerType.includes('plastic') || lowerType.includes('paper') || 
+                   lowerType.includes('metal') || lowerType.includes('glass') || 
+                   lowerType.includes('cardboard');
+        }
+
+        function isHazardous(type) {
+            const lowerType = type.toLowerCase();
+            return lowerType.includes('hazard') || lowerType.includes('battery') || 
+                   lowerType.includes('chemical') || lowerType.includes('toxic');
+        }
+
+        function setTimeFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.controls-panel .control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn${filter.charAt(0).toUpperCase() + filter.slice(1)}`).classList.add('active');
+            applyFilters();
+        }
+
+        function searchDetections() {
+            searchQuery = document.getElementById('searchBox').value;
+            applyFilters();
+        }
+
+        function filterByType(type) {
+            if (type === 'all') {
+                searchQuery = '';
+            } else {
+                searchQuery = type;
+            }
+            document.getElementById('searchBox').value = searchQuery;
+            applyFilters();
+        }
+
+        function toggleChart(type) {
+            chartType = type;
+            document.querySelectorAll('.chart-toggle-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (type === 'bar') {
+                document.getElementById('barChart').style.display = 'flex';
+                document.getElementById('pieChart').classList.remove('active');
+            } else {
+                document.getElementById('barChart').style.display = 'none';
+                document.getElementById('pieChart').classList.add('active');
+            }
+
+            updateChart(filteredDetections);
+        }
+
+        function exportData() {
+            const csv = ['Type,Confidence,Timestamp'];
+            filteredDetections.forEach(d => {
+                csv.push(`${d.type},${d.confidence},${new Date(d.timestamp).toISOString()}`);
+            });
+
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `waste_detections_${Date.now()}.csv`;
+            a.click();
+        }
+
+        function clearData() {
+            if (confirm('Are you sure you want to clear all detection data? This cannot be undone.')) {
+                remove(wasteDataRef);
+                alert('Data cleared successfully!');
+            }
+        }
+
+        function showSystemInfo() {
+            const avgConf = allDetections.length > 0 
+                ? (allDetections.reduce((sum, d) => sum + d.confidence, 0) / allDetections.length * 100).toFixed(1) 
+                : 0;
+            
+            const oldest = allDetections.length > 0 
+                ? new Date(Math.min(...allDetections.map(d => d.timestamp))).toLocaleString() 
+                : 'N/A';
+
+            alert(`System Information:
+            
+Total Detections: ${allDetections.length}
+Average Confidence: ${avgConf}%
+Oldest Detection: ${oldest}
+Database: Firebase Realtime Database
+Status: LIVE & Connected`);
+        }
+
+        function showDetailModal(id) {
+            const detection = allDetections.find(d => d.id === id);
+            if (!detection) return;
+
+            const content = `
+                <p><strong>Type:</strong> ${detection.type}</p>
+                <p><strong>Confidence:</strong> ${(detection.confidence * 100).toFixed(2)}%</p>
+                <p><strong>Time:</strong> ${new Date(detection.timestamp).toLocaleString()}</p>
+                <p><strong>Category:</strong> ${getWasteCategory(detection.type)}</p>
+                <p><strong>ID:</strong> ${detection.id}</p>
+            `;
+
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        function getWasteCategory(type) {
+            if (isOrganic(type)) return '🌱 Organic Waste';
+            if (isRecyclable(type)) return '♻️ Recyclable';
+            if (isHazardous(type)) return '⚠️ Hazardous';
+            return '📦 General Waste';
+        }
+
+        function showRefreshIndicator() {
+            const indicator = document.getElementById('refreshIndicator');
+            indicator.classList.add('active');
+            setTimeout(() => indicator.classList.remove('active'), 2000);
+        }
+    </script>
+</body>
+</html>

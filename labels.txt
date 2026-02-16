@@ -1,0 +1,4 @@
+0 Organic
+1 Recycle
+2 Hazardous
+3 Nothing
